@@ -1,0 +1,133 @@
+<!--
+  Estilos base del escritorio. Solo se estilizan controles sin plantilla propia (TextBlock, Border)
+  para no pelear con el tema de WPF-UI. Los controles de WPF-UI se configuran por instancia
+  (Appearance, altura, etc.) según docs/ui-conventions.md.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="clr-namespace:GestionAcademica.Desktop.Converters">
+
+  <!-- ===================== Converters compartidos ===================== -->
+  <BooleanToVisibilityConverter x:Key="GA.BoolToVisibility" />
+  <conv:InverseBoolToVisibilityConverter x:Key="GA.InverseBoolToVisibility" />
+  <conv:EnumTextoConverter x:Key="GA.EnumTexto" />
+
+  <!-- ===================== Tipografía ===================== -->
+  <Style x:Key="GA.Text.TitleLarge" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource GA.Font.Family}" />
+    <Setter Property="FontSize" Value="{StaticResource GA.Font.Size.TitleLarge}" />
+    <Setter Property="LineHeight" Value="{StaticResource GA.Font.LineHeight.TitleLarge}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Text.Primary}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style x:Key="GA.Text.Title" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource GA.Font.Family}" />
+    <Setter Property="FontSize" Value="{StaticResource GA.Font.Size.Title}" />
+    <Setter Property="LineHeight" Value="{StaticResource GA.Font.LineHeight.Title}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Text.Primary}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style x:Key="GA.Text.Subtitle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource GA.Font.Family}" />
+    <Setter Property="FontSize" Value="{StaticResource GA.Font.Size.Subtitle}" />
+    <Setter Property="LineHeight" Value="{StaticResource GA.Font.LineHeight.Subtitle}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Text.Primary}" />
+  </Style>
+
+  <Style x:Key="GA.Text.Body" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource GA.Font.Family}" />
+    <Setter Property="FontSize" Value="{StaticResource GA.Font.Size.Body}" />
+    <Setter Property="LineHeight" Value="{StaticResource GA.Font.LineHeight.Body}" />
+    <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Text.Primary}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style x:Key="GA.Text.BodyStrong" TargetType="TextBlock" BasedOn="{StaticResource GA.Text.Body}">
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style x:Key="GA.Text.Caption" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource GA.Font.Family}" />
+    <Setter Property="FontSize" Value="{StaticResource GA.Font.Size.Caption}" />
+    <Setter Property="LineHeight" Value="{StaticResource GA.Font.LineHeight.Caption}" />
+    <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Text.Secondary}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style x:Key="GA.Text.Label" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource GA.Font.Family}" />
+    <Setter Property="FontSize" Value="{StaticResource GA.Font.Size.Caption}" />
+    <Setter Property="LineHeight" Value="{StaticResource GA.Font.LineHeight.Caption}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Text.Secondary}" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+  </Style>
+
+  <Style x:Key="GA.Text.Error" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource GA.Font.Family}" />
+    <Setter Property="FontSize" Value="{StaticResource GA.Font.Size.Caption}" />
+    <Setter Property="LineHeight" Value="{StaticResource GA.Font.LineHeight.Caption}" />
+    <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Danger}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Margin" Value="0,4,0,0" />
+  </Style>
+
+  <!-- ===================== Grilla ===================== -->
+  <Style x:Key="GA.Grid.Text" TargetType="TextBlock">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="8,0" />
+    <Setter Property="FontFamily" Value="{StaticResource GA.Font.Family}" />
+    <Setter Property="FontSize" Value="{StaticResource GA.Font.Size.Body}" />
+    <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Text.Primary}" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+
+  <!-- ===================== Superficies ===================== -->
+  <Style x:Key="GA.Card" TargetType="Border">
+    <Setter Property="Background" Value="{DynamicResource GA.Brush.LayerAlt}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource GA.Brush.Stroke}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource GA.Radius.Card}" />
+    <Setter Property="Padding" Value="{StaticResource GA.Thickness.16}" />
+  </Style>
+
+  <Style x:Key="GA.Toolbar" TargetType="Border">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource GA.Brush.Stroke}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="0,0,0,12" />
+  </Style>
+
+  <!--
+    ===================== Validación =====================
+    ErrorTemplate propio: borde de peligro + indicador con el primer mensaje del
+    campo en el tooltip. Se aplica por control con
+    Validation.ErrorTemplate="{StaticResource GA.Validation.ErrorTemplate}".
+  -->
+  <ControlTemplate x:Key="GA.Validation.ErrorTemplate">
+    <Grid>
+      <Border BorderBrush="{DynamicResource GA.Brush.Danger}"
+              BorderThickness="1"
+              CornerRadius="{StaticResource GA.Radius.Control}">
+        <AdornedElementPlaceholder x:Name="Adorned" />
+      </Border>
+      <TextBlock Text="!"
+                 Foreground="{DynamicResource GA.Brush.Danger}"
+                 FontWeight="SemiBold"
+                 FontSize="{StaticResource GA.Font.Size.Caption}"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Top"
+                 Margin="0,-8,6,0">
+        <TextBlock.ToolTip>
+          <TextBlock Text="{Binding ElementName=Adorned, Path=AdornedElement.(Validation.Errors)[0].ErrorContent}" />
+        </TextBlock.ToolTip>
+      </TextBlock>
+    </Grid>
+  </ControlTemplate>
+
+</ResourceDictionary>

@@ -1,0 +1,299 @@
+<Page x:Class="GestionAcademica.Desktop.Views.CarrerasPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:vm="clr-namespace:GestionAcademica.Desktop.ViewModels"
+      xmlns:conv="clr-namespace:GestionAcademica.Desktop.Converters"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      d:DataContext="{d:DesignInstance Type=vm:CarrerasViewModel}"
+      Title="Carreras"
+      PreviewKeyDown="OnPreviewKeyDown">
+
+  <Page.Resources>
+    <conv:TipoCarreraTextoConverter x:Key="TipoCarreraTexto" />
+  </Page.Resources>
+
+  <Grid Margin="{StaticResource GA.Thickness.24}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- ===================== Encabezado ===================== -->
+    <Grid Grid.Row="0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <StackPanel Grid.Column="0">
+        <TextBlock Text="Carreras" Style="{StaticResource GA.Text.Title}" />
+        <TextBlock Text="Estructura curricular: alta, edición y estado de las carreras."
+                   Style="{StaticResource GA.Text.Caption}"
+                   Margin="{StaticResource GA.Gap.Top4}" />
+      </StackPanel>
+
+      <ui:Button Grid.Column="1"
+                 Content="Nueva carrera"
+                 Appearance="Primary"
+                 Command="{Binding NuevaCommand}"
+                 Height="{StaticResource GA.Size.Control}"
+                 VerticalAlignment="Center">
+        <ui:Button.Icon>
+          <ui:SymbolIcon Symbol="Add24" />
+        </ui:Button.Icon>
+      </ui:Button>
+    </Grid>
+
+    <!-- ===================== Barra de herramientas ===================== -->
+    <Border Grid.Row="1" Style="{StaticResource GA.Toolbar}" Margin="{StaticResource GA.Gap.Top20}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <ui:TextBox x:Name="SearchBox"
+                    Grid.Column="0"
+                    Width="{StaticResource GA.Size.SearchWidth}"
+                    Height="{StaticResource GA.Size.Control}"
+                    PlaceholderText="Buscar por nombre o título"
+                    Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+          <ui:TextBox.Icon>
+            <ui:SymbolIcon Symbol="Search24" />
+          </ui:TextBox.Icon>
+        </ui:TextBox>
+
+        <CheckBox Grid.Column="1"
+                  Content="Solo activas"
+                  IsChecked="{Binding SoloActivas}"
+                  VerticalAlignment="Center"
+                  Margin="{StaticResource GA.Gap.Left16}" />
+
+        <ui:Button Grid.Column="2"
+                   Appearance="Secondary"
+                   Command="{Binding RefrescarCommand}"
+                   ToolTip="Actualizar (F5)"
+                   Height="{StaticResource GA.Size.Control}"
+                   Margin="{StaticResource GA.Gap.Left16}">
+          <ui:SymbolIcon Symbol="ArrowClockwise24" />
+        </ui:Button>
+      </Grid>
+    </Border>
+
+    <!-- ===================== Errores ===================== -->
+    <ui:InfoBar Grid.Row="2"
+                IsOpen="{Binding HasError, Mode=OneWay}"
+                Severity="Error"
+                Title="No se pudo completar la operación"
+                Message="{Binding ErrorMessage}"
+                IsClosable="False"
+                Margin="{StaticResource GA.Gap.Top12}" />
+
+    <!-- ===================== Contenido ===================== -->
+    <Grid Grid.Row="3" Margin="{StaticResource GA.Gap.Top12}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <Border Grid.Column="0" Style="{StaticResource GA.Card}" Padding="0">
+        <Grid>
+          <ui:DataGrid x:Name="DataGridCarreras"
+                       ItemsSource="{Binding Carreras}"
+                       SelectedItem="{Binding SelectedCarrera}"
+                       AutoGenerateColumns="False"
+                       CanUserAddRows="False"
+                       CanUserDeleteRows="False"
+                       CanUserReorderColumns="False"
+                       IsReadOnly="True"
+                       HeadersVisibility="Column"
+                       GridLinesVisibility="Horizontal"
+                       HorizontalGridLinesBrush="{DynamicResource GA.Brush.Stroke}"
+                       SelectionMode="Single"
+                       SelectionUnit="FullRow"
+                       RowHeight="{StaticResource GA.Size.Row}"
+                       Background="Transparent"
+                       BorderThickness="0"
+                       EnableRowVirtualization="True">
+            <ui:DataGrid.Columns>
+
+              <DataGridTextColumn Header="Nombre"
+                                  Binding="{Binding Nombre}"
+                                  Width="*"
+                                  ElementStyle="{StaticResource GA.Grid.Text}" />
+
+              <DataGridTemplateColumn Header="Tipo" Width="120">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Tipo, Converter={StaticResource TipoCarreraTexto}}"
+                               Style="{StaticResource GA.Grid.Text}" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+              <DataGridTextColumn Header="Título otorgado"
+                                  Binding="{Binding TituloOtorgado}"
+                                  Width="1.5*"
+                                  ElementStyle="{StaticResource GA.Grid.Text}" />
+
+              <DataGridTextColumn Header="Duración"
+                                  Binding="{Binding DuracionAnios, StringFormat={}{0} años}"
+                                  Width="110"
+                                  ElementStyle="{StaticResource GA.Grid.Text}" />
+
+              <DataGridTemplateColumn Header="Estado" Width="100">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="{StaticResource GA.Thickness.8}">
+                      <Ellipse Width="{StaticResource GA.Size.Dot}" Height="{StaticResource GA.Size.Dot}" VerticalAlignment="Center">
+                        <Ellipse.Style>
+                          <Style TargetType="Ellipse">
+                            <Setter Property="Fill" Value="{DynamicResource GA.Brush.Success}" />
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding Activa}" Value="False">
+                                <Setter Property="Fill" Value="{DynamicResource GA.Brush.Text.Disabled}" />
+                              </DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </Ellipse.Style>
+                      </Ellipse>
+                      <TextBlock Margin="{StaticResource GA.Gap.Left8}" VerticalAlignment="Center">
+                        <TextBlock.Style>
+                          <Style TargetType="TextBlock" BasedOn="{StaticResource GA.Text.Body}">
+                            <Setter Property="Text" Value="Activa" />
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding Activa}" Value="False">
+                                <Setter Property="Text" Value="Inactiva" />
+                                <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Text.Secondary}" />
+                              </DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </TextBlock.Style>
+                      </TextBlock>
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+
+            </ui:DataGrid.Columns>
+          </ui:DataGrid>
+
+          <StackPanel HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Visibility="{Binding MostrarVacio, Converter={StaticResource GA.BoolToVisibility}}">
+            <ui:SymbolIcon Symbol="Book24"
+                           FontSize="{StaticResource GA.Size.ControlLarge}"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource GA.Brush.Text.Secondary}" />
+            <TextBlock Text="Sin carreras para mostrar"
+                       Style="{StaticResource GA.Text.Subtitle}"
+                       HorizontalAlignment="Center"
+                       Margin="{StaticResource GA.Gap.Top8}" />
+            <TextBlock Text="Ajustá la búsqueda o creá una carrera nueva."
+                       Style="{StaticResource GA.Text.Caption}"
+                       HorizontalAlignment="Center" />
+          </StackPanel>
+
+          <ui:ProgressRing IsIndeterminate="True"
+                           Width="{StaticResource GA.Size.Control}"
+                           Height="{StaticResource GA.Size.Control}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="{Binding IsBusy, Converter={StaticResource GA.BoolToVisibility}}" />
+        </Grid>
+      </Border>
+
+      <!-- ===================== Editor lateral ===================== -->
+      <Border Grid.Column="1"
+              Style="{StaticResource GA.Card}"
+              Width="{StaticResource GA.Size.EditorWidth}"
+              Margin="{StaticResource GA.Gap.Left16}"
+              Visibility="{Binding IsEditorOpen, Converter={StaticResource GA.BoolToVisibility}}">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+
+          <TextBlock Grid.Row="0"
+                     Text="{Binding Editor.Titulo}"
+                     Style="{StaticResource GA.Text.Subtitle}"
+                     Margin="{StaticResource GA.Gap.Bottom12}" />
+
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel DataContext="{Binding Editor}" Margin="{StaticResource GA.Gap.Right8}">
+
+              <TextBlock Text="Nombre" Style="{StaticResource GA.Text.Label}" />
+              <ui:TextBox Text="{Binding Nombre, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
+                          Height="{StaticResource GA.Size.Control}"
+                          Validation.ErrorTemplate="{StaticResource GA.Validation.ErrorTemplate}" />
+
+              <TextBlock Text="Tipo" Style="{StaticResource GA.Text.Label}" Margin="{StaticResource GA.Gap.Field}" />
+              <ComboBox ItemsSource="{Binding Tipos}"
+                        SelectedItem="{Binding Tipo, ValidatesOnNotifyDataErrors=True}"
+                        Height="{StaticResource GA.Size.Control}"
+                        Validation.ErrorTemplate="{StaticResource GA.Validation.ErrorTemplate}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Converter={StaticResource TipoCarreraTexto}}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+
+              <TextBlock Text="Título otorgado" Style="{StaticResource GA.Text.Label}" Margin="{StaticResource GA.Gap.Field}" />
+              <ui:TextBox Text="{Binding TituloOtorgado, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
+                          Height="{StaticResource GA.Size.Control}"
+                          Validation.ErrorTemplate="{StaticResource GA.Validation.ErrorTemplate}" />
+
+              <TextBlock Text="Duración (años)" Style="{StaticResource GA.Text.Label}" Margin="{StaticResource GA.Gap.Field}" />
+              <ui:NumberBox Value="{Binding DuracionAnios, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
+                            Minimum="1"
+                            Maximum="100"
+                            Height="{StaticResource GA.Size.Control}"
+                            Validation.ErrorTemplate="{StaticResource GA.Validation.ErrorTemplate}" />
+
+              <CheckBox Content="Activa"
+                        IsChecked="{Binding Activa}"
+                        Margin="{StaticResource GA.Gap.Field}"
+                        Visibility="{Binding EsAlta, Converter={StaticResource GA.InverseBoolToVisibility}}" />
+
+            </StackPanel>
+          </ScrollViewer>
+
+          <StackPanel Grid.Row="2"
+                      Orientation="Horizontal"
+                      HorizontalAlignment="Right"
+                      Margin="{StaticResource GA.Gap.Top12}">
+            <ui:Button Content="Cancelar"
+                       Command="{Binding CancelarEdicionCommand}"
+                       Height="{StaticResource GA.Size.Control}"
+                       Margin="{StaticResource GA.Gap.Right8}" />
+            <ui:Button Content="Guardar"
+                       Appearance="Primary"
+                       Command="{Binding GuardarCommand}"
+                       Height="{StaticResource GA.Size.Control}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- ===================== Pie ===================== -->
+    <Grid Grid.Row="4" Margin="{StaticResource GA.Gap.Top12}">
+      <TextBlock Style="{StaticResource GA.Text.Caption}">
+        <Run Text="{Binding VisibleCount, Mode=OneWay}" /><Run Text=" de " /><Run Text="{Binding TotalCount, Mode=OneWay}" /><Run Text=" carreras" />
+      </TextBlock>
+      <TextBlock HorizontalAlignment="Right"
+                 Style="{StaticResource GA.Text.Caption}"
+                 Text="Enter editar · Ctrl+N nueva · Ctrl+S guardar · F5 actualizar" />
+    </Grid>
+  </Grid>
+</Page>

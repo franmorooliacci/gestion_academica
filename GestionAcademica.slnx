@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/GestionAcademica.Api/GestionAcademica.Api.csproj" />
     <Project Path="src/GestionAcademica.Application/GestionAcademica.Application.csproj" />
+    <Project Path="src/GestionAcademica.Desktop/GestionAcademica.Desktop.csproj" />
     <Project Path="src/GestionAcademica.Domain/GestionAcademica.Domain.csproj" />
     <Project Path="src/GestionAcademica.Infrastructure/GestionAcademica.Infrastructure.csproj" />
     <Project Path="src/GestionAcademica.Shared.Contracts/GestionAcademica.Shared.Contracts.csproj" />

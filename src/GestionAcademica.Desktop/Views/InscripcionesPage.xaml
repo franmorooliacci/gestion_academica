@@ -1,0 +1,128 @@
+﻿<Page x:Class="GestionAcademica.Desktop.Views.InscripcionesPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:vm="clr-namespace:GestionAcademica.Desktop.ViewModels" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+      d:DataContext="{d:DesignInstance Type=vm:InscripcionesViewModel}"
+      Title="Inscripciones" PreviewKeyDown="OnPreviewKeyDown">
+
+  <Grid Margin="{StaticResource GA.Thickness.24}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!--  ===================== Encabezado =====================  -->
+    <StackPanel Grid.Row="0">
+      <TextBlock Text="Inscripciones" Style="{StaticResource GA.Text.Title}" />
+      <TextBlock Text="Consulta de inscripciones a comisión por materia, período y estado." Style="{StaticResource GA.Text.Caption}" Margin="{StaticResource GA.Gap.Top4}" />
+    </StackPanel>
+
+    <!--  ===================== Barra de herramientas =====================  -->
+    <Border Grid.Row="1" Style="{StaticResource GA.Toolbar}" Margin="{StaticResource GA.Gap.Top20}">
+      <WrapPanel>
+        <ui:TextBox x:Name="SearchBox" Width="{StaticResource GA.Size.SearchWidth}" Height="{StaticResource GA.Size.Control}" PlaceholderText="Buscar por alumno, materia o comisión" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="{StaticResource GA.Gap.FilterItem}">
+          <ui:TextBox.Icon>
+            <ui:SymbolIcon Symbol="Search24" />
+          </ui:TextBox.Icon>
+        </ui:TextBox>
+
+        <ComboBox Width="{StaticResource GA.Size.FilterWidth}" Height="{StaticResource GA.Size.Control}" ItemsSource="{Binding MateriasFiltro}" SelectedItem="{Binding MateriaFiltro}" DisplayMemberPath="Texto" Margin="{StaticResource GA.Gap.FilterItem}" />
+
+        <ComboBox Width="{StaticResource GA.Size.FilterWidth}" Height="{StaticResource GA.Size.Control}" ItemsSource="{Binding PeriodosFiltro}" SelectedItem="{Binding PeriodoFiltro}" DisplayMemberPath="Texto" Margin="{StaticResource GA.Gap.FilterItem}" />
+
+        <ComboBox Width="{StaticResource GA.Size.FilterWidth}" Height="{StaticResource GA.Size.Control}" ItemsSource="{Binding EstadosFiltro}" SelectedItem="{Binding EstadoFiltro}" DisplayMemberPath="Texto" Margin="{StaticResource GA.Gap.FilterItem}" />
+
+        <ui:Button Appearance="Secondary" Command="{Binding RefrescarCommand}" ToolTip="Actualizar (F5)" AutomationProperties.Name="Actualizar" Height="{StaticResource GA.Size.Control}" Margin="{StaticResource GA.Gap.FilterItem}">
+          <ui:SymbolIcon Symbol="ArrowClockwise24" />
+        </ui:Button>
+      </WrapPanel>
+    </Border>
+
+    <!--  ===================== Errores =====================  -->
+    <ui:InfoBar Grid.Row="2" IsOpen="{Binding HasError, Mode=OneWay}" Severity="Error" Title="No se pudo completar la operación" Message="{Binding ErrorMessage}" IsClosable="False" Margin="{StaticResource GA.Gap.Top12}" />
+
+    <!--  ===================== Contenido =====================  -->
+    <Border Grid.Row="3" Style="{StaticResource GA.Card}" Padding="0" Margin="{StaticResource GA.Gap.Top12}">
+      <Grid>
+        <ui:DataGrid x:Name="DataGridInscripciones"
+                     ItemsSource="{Binding Inscripciones}"
+                     AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" IsReadOnly="True" HeadersVisibility="Column"
+                     GridLinesVisibility="Horizontal"
+                     HorizontalGridLinesBrush="{DynamicResource GA.Brush.Stroke}"
+                     SelectionMode="Single" SelectionUnit="FullRow"
+                     RowHeight="{StaticResource GA.Size.Row}"
+                     Background="Transparent" BorderThickness="0" EnableRowVirtualization="True">
+          <ui:DataGrid.Columns>
+
+            <DataGridTextColumn Header="Alumno" Binding="{Binding PersonaNombre}" Width="1.4*" ElementStyle="{StaticResource GA.Grid.Text}" />
+
+            <DataGridTextColumn Header="Materia" Binding="{Binding MateriaNombre}" Width="*" ElementStyle="{StaticResource GA.Grid.Text}" />
+
+            <DataGridTextColumn Header="Comisión" Binding="{Binding ComisionCodigo}" Width="90" ElementStyle="{StaticResource GA.Grid.Text}" />
+
+            <DataGridTextColumn Header="Período" Binding="{Binding PeriodoTexto}" Width="170" ElementStyle="{StaticResource GA.Grid.Text}" />
+
+            <DataGridTemplateColumn Header="Estado" Width="130">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="{StaticResource GA.Thickness.8}">
+                    <Ellipse Width="{StaticResource GA.Size.Dot}" Height="{StaticResource GA.Size.Dot}" VerticalAlignment="Center">
+                      <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                          <Setter Property="Fill" Value="{DynamicResource GA.Brush.Success}" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding EsEnEspera}" Value="True">
+                              <Setter Property="Fill" Value="{DynamicResource GA.Brush.Warning}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding EsBaja}" Value="True">
+                              <Setter Property="Fill" Value="{DynamicResource GA.Brush.Text.Disabled}" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="{Binding EstadoTexto}" Margin="{StaticResource GA.Gap.Left8}" VerticalAlignment="Center">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource GA.Text.Body}">
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding EsBaja}" Value="True">
+                              <Setter Property="Foreground" Value="{DynamicResource GA.Brush.Text.Secondary}" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="Condición" Binding="{Binding CondicionTexto}" Width="100" ElementStyle="{StaticResource GA.Grid.Text}" />
+
+            <DataGridTextColumn Header="Fecha" Binding="{Binding FechaInscripcion, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="160" ElementStyle="{StaticResource GA.Grid.Text}" />
+
+          </ui:DataGrid.Columns>
+        </ui:DataGrid>
+
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding MostrarVacio, Converter={StaticResource GA.BoolToVisibility}}">
+          <ui:SymbolIcon Symbol="Clipboard24" FontSize="{StaticResource GA.Size.ControlLarge}" HorizontalAlignment="Center" Foreground="{DynamicResource GA.Brush.Text.Secondary}" />
+          <TextBlock Text="Sin inscripciones para mostrar" Style="{StaticResource GA.Text.Subtitle}" HorizontalAlignment="Center" Margin="{StaticResource GA.Gap.Top8}" />
+          <TextBlock Text="Ajustá los filtros. Las inscripciones las generan los alumnos desde la web." Style="{StaticResource GA.Text.Caption}" HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <ui:ProgressRing IsIndeterminate="True" Width="{StaticResource GA.Size.Control}" Height="{StaticResource GA.Size.Control}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsBusy, Converter={StaticResource GA.BoolToVisibility}}" />
+      </Grid>
+    </Border>
+
+    <!--  ===================== Pie =====================  -->
+    <Grid Grid.Row="4" Margin="{StaticResource GA.Gap.Top12}">
+      <TextBlock Style="{StaticResource GA.Text.Caption}">
+        <Run Text="{Binding VisibleCount, Mode=OneWay}" /><Run Text=" de " /><Run Text="{Binding TotalCount, Mode=OneWay}" /><Run Text=" inscripciones" />
+      </TextBlock>
+      <TextBlock HorizontalAlignment="Right" Style="{StaticResource GA.Text.Caption}" Text="Solo consulta · F5 actualizar" />
+    </Grid>
+  </Grid>
+</Page>

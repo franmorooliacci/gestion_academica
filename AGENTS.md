@@ -52,6 +52,17 @@ Guía para agentes de IA y desarrolladores que trabajen en este repositorio.
 - Tests: los unitarios no tocan la BD; los de integración usan la base aislada `gestion_academica_test`
   (el fixture la recrea y aplica `database/schema.sql`). Nunca apuntar tests a `gestion_academica`.
 
+## UI de escritorio (fase 2)
+- `docs/ui-conventions.md` es **normativa** para `src/GestionAcademica.Desktop`. Leerla antes de crear
+  o modificar una vista.
+- Stack visual fijo: **WPF-UI 4.x (Fluent / Windows 11)** + `CommunityToolkit.Mvvm`. No agregar otro toolkit.
+- La pantalla `Views/PersonasPage.xaml` + `ViewModels/PersonasViewModel.cs` es el **molde de referencia**:
+  toda pantalla nueva se copia estructuralmente de ahí. Las pantallas heredan de `PageViewModelBase`
+  y los formularios de `EditorViewModelBase` (`ViewModels/Infrastructure/`).
+- Reglas cortas: colores/tamaños solo desde `Themes/` con `DynamicResource`; ViewModels sin `System.Windows`
+  y sin `HttpClient` (dependen de `IPersonasApi`-style interfaces); errores de API vía `ProblemDetails` →
+  `InfoBar`; grillas densas y operables 100 % por teclado.
+
 ## Prohibido
 - NO agregar tablas nuevas al schema (solo se permiten campos a tablas existentes).
 - NO hardcodear credenciales reales (usar user-secrets / `appsettings.Development.json`).
@@ -60,10 +71,12 @@ Guía para agentes de IA y desarrolladores que trabajen en este repositorio.
 
 ## Comandos
 - `dotnet build GestionAcademica.slnx`
-- `dotnet test GestionAcademica.slnx` (26 unitarios + 3 de integración; los de integración requieren MySQL local y usan la base `gestion_academica_test`)
+- `dotnet test GestionAcademica.slnx` (32 unitarios + 3 de integración; los de integración requieren MySQL local y usan la base `gestion_academica_test`)
 - `dotnet test tests/GestionAcademica.UnitTests`
 - `dotnet test tests/GestionAcademica.IntegrationTests` (conexión: `GESTIONACADEMICA_TEST_CONNECTION` o `appsettings.Development.json`)
-- `dotnet run --project src/GestionAcademica.Api --launch-profile http`
+- Levantar primero la API: `dotnet run --project src/GestionAcademica.Api --launch-profile http`
+- Luego el escritorio (con la API corriendo): `dotnet run --project src/GestionAcademica.Desktop`
+  (login: `administrativo` / `Administrativo1234!`)
 - Re-aplicar schema (desde `cmd`):
   `"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" --user=root --password=1234 --default-character-set=utf8mb4 gestion_academica < database\schema.sql`
 - Scaffold de referencia (opcional, para inspeccionar el schema):

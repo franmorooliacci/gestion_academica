@@ -5,7 +5,7 @@ Sistema de gestión académica. Backend unificado (ASP.NET Core Web API) + clien
 > Fuente de arquitectura: `docs/Arquitectura Seminario.docx` (Clean Architecture, API-first).
 > El nombre del proyecto/solución es **GestionAcademica** (no `SistemaAcademico` ni `Academic`).
 
-> **Estado (2026-11-03)**: **Fase 1 completa** (hitos 1.1 a 1.7). Próximo: **Fase 2** (cliente de escritorio WPF).
+> **Estado (2026-11-04)**: **Fase 1 completa** (hitos 1.1 a 1.7). **Fase 2 completa** (hitos 2.1 a 2.4). El escritorio cubre toda la operación administrativa: personas/roles, carreras, materias + correlatividades, períodos (apertura de ventanas), comisiones (cupo/lista de espera), asignaciones docentes, mesas de examen, consulta de inscripciones y actas, y contexto de sesión con carrera activa y refresh de token. No quedan hitos pendientes de Fase 2; el próximo objetivo es la **Fase 3 (web)**, fuera del alcance actual.
 
 ---
 
@@ -20,7 +20,7 @@ Sistema de gestión académica. Backend unificado (ASP.NET Core Web API) + clien
 | Persistencia | **Database First**: mapeo manual de entidades + DbContext desde `database/schema.sql` (sin migraciones) |
 | ORM | **EF Core 9 + Pomelo 9.0.0** (Pomelo aún no soporta EF Core 10; corre sobre el runtime .NET 10) |
 | Modificaciones de schema | Solo **campos/columnas** a tablas existentes. **Sin tablas nuevas** |
-| Redis | **Diferido a fase 2** (bloqueo pesimista `SELECT ... FOR UPDATE` ahora) |
+| Redis | **No implementado / futuro**; la concurrencia de cupos se resuelve con bloqueo pesimista `SELECT ... FOR UPDATE` |
 | Auth | **JWT custom + BCrypt** |
 | Certificados | **QuestPDF + QRCoder**: PDFs en carpeta local protegida, validación pública por QR |
 | Tests | **xUnit**: unitarios de lógica pura + integración contra MySQL real en base aislada `gestion_academica_test` |
@@ -93,7 +93,10 @@ src/
     Middlewares/                      # Manejo global de errores (ProblemDetails)
     Program.cs
   GestionAcademica.Desktop/           # Cliente WPF administrativo (fase 2)
-    Views/  ViewModels/  Services/
+    Views/  ViewModels/  Services/    # Páginas + ViewModels MVVM + clientes tipados de la API
+    ViewModels/Infrastructure/        # PageViewModelBase, EditorViewModelBase, OpcionSeleccion, EnumTextos
+    Themes/                           # Tokens claros/oscuros y estilos compartidos
+    Converters/                       # Converters de presentación (enums, visibilidad, roles)
 tests/
   GestionAcademica.UnitTests/         # Correlatividades, cupos y JWT (sin BD)
   GestionAcademica.IntegrationTests/  # MySQL real: concurrencia de cupos (base gestion_academica_test)
@@ -164,7 +167,7 @@ tests/
     - `tests/GestionAcademica.IntegrationTests`: 3 tests contra MySQL real que verifican que la inscripción concurrente no sobrevende el cupo, usa la lista de espera y promueve al primero ante una baja. La base de test es `gestion_academica_test` (se recrea y se le aplica `database/schema.sql` en cada corrida).
 16. Middleware global de errores → `ProblemDetails` ✅ (implementado en `Api/Middlewares/ExceptionHandlingMiddleware`). Header `X-Client-Version`: no implementado (opcional).
 
-**Entregable**: `dotnet test GestionAcademica.slnx` ejecuta **29 tests** (26 unitarios + 3 de integración) sin fallos. ✅
+**Entregable al cierre del hito**: `dotnet test GestionAcademica.slnx` ejecuta **29 tests** (26 unitarios + 3 de integración) sin fallos. ✅ (La suite creció a **35 tests** al sumar los tests de refresh de token del hito 2.4.)
 
 > La conexión de los tests de integración se toma de `GESTIONACADEMICA_TEST_CONNECTION`, o de `src/GestionAcademica.Api/appsettings.Development.json`, o del default local `Server=localhost;Port=3306;Uid=root;Pwd=1234;`.
 
@@ -172,17 +175,44 @@ tests/
 
 ## 6. FASE 2 — App de escritorio WPF
 
-### Hito 2.1 — Esqueleto
-- Shell WPF + MVVM (CommunityToolkit.Mvvm), DI (`Microsoft.Extensions.DependencyInjection`), typed `HttpClient` contra la API usando los DTOs de `Shared.Contracts`, pantalla de login (JWT en memoria).
+### Hito 2.1 — Esqueleto ✅
+- Shell WPF + MVVM (CommunityToolkit.Mvvm), DI (`Microsoft.Extensions.DependencyInjection`), typed `HttpClient` contra la API usando los DTOs de `Shared.Contracts`, pantalla de login (JWT en memoria). ✅
+- `PageViewModelBase` / `EditorViewModelBase` (`ViewModels/Infrastructure/`) centralizan carga, errores de `ProblemDetails`, validación con `ObservableValidator` y cancelación por navegación. ✅
+- Tokens visuales (`Themes/`), `ErrorTemplate`, estilos de grilla/formulario y XamlStyler. ✅
 
-### Hito 2.2 — Operación administrativa
-- Pantallas de personas/roles, carreras/materias/correlatividades, periodos (apertura de ventanas), comisiones (cupo/lista de espera), asignaciones docentes y mesas de examen. Grillas densas + entrada por teclado.
+### Hito 2.2 — Operación administrativa ✅
+- Pantallas de personas/roles, carreras/materias/correlatividades, periodos (apertura de ventanas), comisiones (cupo/lista de espera), asignaciones docentes y mesas de examen. Grillas densas + entrada por teclado. ✅
+  - **Personas** (`PersonasPage`): alta/edición, búsqueda y asignación de roles `alumno`/`profesor`.
+  - **Carreras** (`CarrerasPage`): ABM con tipo, título y duración.
+  - **Materias** (`MateriasPage`): ABM por carrera y gestión de **correlatividades** (`regularizada`/`aprobada`) desde el editor lateral.
+  - **Períodos** (`PeriodosPage`): calendario y apertura de ventanas de inscripción a cursadas y finales.
+  - **Comisiones** (`ComisionesPage`): cupo máximo, lista de espera, turno, modalidad y filtros por materia/período.
+  - **Asignaciones docentes** (`AsignacionesDocentesPage`): docente, materia, comisión opcional, cargo y vigencia.
+  - **Mesas de examen** (`ExamenesPage`): materia, período, fecha/hora y aula.
+- Todas las pantallas siguen el molde `PersonasPage`/`PersonasViewModel`: editor lateral, `InfoBar`, estado vacío, contador, `ProgressRing` y atajos `Enter`, `Delete`, `Ctrl+N`, `Ctrl+S`, `Esc`, `F5`.
+- Navegación del shell actualizada (todos los módulos habilitados) y registro por DI.
+- Verificación: build de la solución con **0 warnings / 0 errores**, 26 tests unitarios + 3 de integración, y prueba de humo del escritorio (login, navegación por las siete pantallas y apertura/cierre de cada editor).
 
-### Hito 2.3 — Consulta de la operación
+### Hito 2.3 — Consulta de la operación ✅
 - Consulta de inscripciones y actas. El cierre de actas y la carga de notas se realizan desde la web del profesor; la solicitud de certificados, desde la web del alumno.
+  - **Inscripciones** (`InscripcionesPage`): consulta de solo lectura de las inscripciones a comisión (`GET /api/inscripciones-comision`) con filtros por texto (alumno/materia/comisión), materia, período y estado (`inscripto`/`en espera`/`baja`), condición de cursada y fecha de inscripción.
+  - **Actas** (`ActasPage`): grilla de mesas de examen (`GET /api/examenes`) y, al seleccionar una, el acta correspondiente (`GET /api/examenes/{id}/inscripciones`) con alumno, estado (`inscripto`/`presente`/`ausente`), nota y resumen de presentes/ausentes/sin cerrar. Sin edición ni cierre de acta desde el escritorio.
+- Ambas pantallas son de solo consulta: no exponen alta, edición ni borrado, y respetan el molde `PersonasPage`/`PersonasViewModel` (filtros arriba, contador, estado vacío, `ProgressRing`, `InfoBar` y atajos `F5`; en Actas además `Enter` para ver/recargar el acta y `Esc` para cerrarla).
+- Clientes tipados nuevos/extendidos: `IInscripcionesComisionApi` y `IExamenesApi.GetInscripcionesAsync`.
+- Verificación: build de todos los proyectos (API, escritorio y tests) con **0 warnings / 0 errores**, 26 tests unitarios + 3 de integración en verde y prueba de humo del escritorio (login y navegación a las pantallas nuevas).
 
-### Hito 2.4 — Contexto de sesión
-- Selección de carrera activa, manejo de errores de API y refresh de token. El escritorio opera siempre con el rol `administrativo`; el selector de rol activo aplica a la web (alumno/profesor). (Auto-update con Velopack opcional futuro.)
+### Hito 2.4 — Contexto de sesión ✅
+- **Carrera activa**: selector en la barra de estado del shell (`ShellViewModel`) con “Todas las carreras” más las carreras activas (`GET /api/carreras`). La selección se guarda en `SessionService` y se comparte con las pantallas.
+  - Materias usa la carrera activa como filtro por defecto y como carrera inicial al crear una materia.
+  - Comisiones, exámenes, actas, asignaciones docentes e inscripciones a comisión filtran sus filas por la carrera de la materia; los editores de alta inicializan materia/carrera según el contexto.
+- **Refresh de token**:
+  - `POST /api/auth/refresh` (anónimo) acepta un JWT vigente o vencido, valida firma/emisor/audiencia sin exigir vigencia y revalida el perfil y el rol activo contra la base antes de emitir un token nuevo. Implementado con `IJwtTokenParser` / `JwtTokenParser` y `RefreshTokenCommand`.
+  - `TokenRefreshHandler` renueva el token de forma proactiva cuando faltan ≤2 minutos y reintenta una vez la request ante un `401`. `TokenRefreshService` serializa los refresh concurrentes.
+  - Si el refresh ya no es posible (`401`/`403`), `SessionService` invalida la sesión y el shell vuelve al login sin reiniciar la aplicación.
+- **Manejo de errores de API**: se mantiene la traducción centralizada de `ProblemDetails` en `ApiException` → `InfoBar`; el `401` de sesión dispara el refresh y, si falla, el retorno al login.
+- El escritorio sigue operando exclusivamente con el rol `administrativo`; el cambio de rol activo continúa siendo responsabilidad de la web (alumno/profesor).
+- Verificación: build de la solución con **0 warnings / 0 errores**, **32 tests unitarios + 3 de integración** en verde (se agregaron tests de lectura de JWT vencido/válido y rechazo de tokens inválidos) y prueba end-to-end del refresh contra MySQL real.
+- *(Opcional futuro: auto-update con Velopack.)*
 
 ---
 
@@ -196,7 +226,7 @@ tests/
 
 | Riesgo | Mitigación |
 |---|---|
-| Race condition en cupos | `SELECT ... FOR UPDATE` (fase 1); Redis `DECR` (fase 2) |
+| Race condition en cupos | `SELECT ... FOR UPDATE` (implementado y verificado con tests de concurrencia); Redis `DECR` queda como optimización futura |
 | Semántica de correlatividades/docentes | Resuelto con `tipo_requisito` e `id_comision` (ver sección 3) |
 | Desincronización de enums cliente/API | ENUMs como string en JSON + `Shared.Contracts` + (futuro) header `X-Client-Version` |
 | Certificados falsificados o acceso a PDFs ajenos | Código de validación aleatorio y único impreso en el QR; descarga autenticada con control de titularidad (403); PDFs fuera de `wwwroot`, servidos solo por la API |

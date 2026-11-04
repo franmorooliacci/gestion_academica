@@ -6,6 +6,8 @@ public sealed record LoginRequest(string Username, string Password, ClientApp? C
 
 public sealed record LoginResponse(string Token, DateTime ExpiresAt, UserDto User);
 
+public sealed record RefreshTokenRequest(string Token);
+
 public sealed record SwitchRoleRequest(string Role);
 
 public sealed record UserDto(

@@ -1,0 +1,14 @@
+{
+  "IndentSize": 2,
+  "IndentWithTabs": false,
+  "AttributesTolerance": 8,
+  "KeepFirstAttributeOnSameLine": true,
+  "MaxAttributeCharactersPerLine": 160,
+  "MaxAttributesPerLine": 8,
+  "EnableAttributeReordering": false,
+  "ReorderVSM": false,
+  "ReorderGridChildren": false,
+  "ReorderCanvasChildren": false,
+  "ReorderSetters": false,
+  "RemoveDesignTimeReferences": false
+}

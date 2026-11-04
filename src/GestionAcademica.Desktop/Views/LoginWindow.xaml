@@ -1,0 +1,72 @@
+<ui:FluentWindow x:Class="GestionAcademica.Desktop.Views.LoginWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:vm="clr-namespace:GestionAcademica.Desktop.ViewModels"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 mc:Ignorable="d"
+                 d:DataContext="{d:DesignInstance Type=vm:LoginViewModel}"
+                 Title="Gestión Académica — Ingreso"
+                 Width="420"
+                 Height="560"
+                 ResizeMode="NoResize"
+                 WindowStartupLocation="CenterScreen"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 WindowCornerPreference="Round">
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <ui:TitleBar Grid.Row="0" Title="Gestión Académica" ShowMaximize="False" ShowMinimize="False" />
+
+    <StackPanel Grid.Row="1" Margin="{StaticResource GA.Gap.Page}" VerticalAlignment="Center">
+
+      <ui:SymbolIcon Symbol="Building24"
+                     FontSize="{StaticResource GA.Size.Control}"
+                     Foreground="{DynamicResource GA.Brush.Accent}"
+                     HorizontalAlignment="Left" />
+
+      <TextBlock Text="Gestión Académica"
+                 Style="{StaticResource GA.Text.Title}"
+                 Margin="{StaticResource GA.Gap.Field}" />
+
+      <TextBlock Text="Ingresá con tu usuario administrativo."
+                 Style="{StaticResource GA.Text.Caption}" />
+
+      <TextBlock Text="Usuario" Style="{StaticResource GA.Text.Label}" Margin="{StaticResource GA.Gap.FieldXL}" />
+      <ui:TextBox x:Name="UsernameBox"
+                  Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                  Height="{StaticResource GA.Size.Control}" />
+
+      <TextBlock Text="Contraseña" Style="{StaticResource GA.Text.Label}" Margin="{StaticResource GA.Gap.Field}" />
+      <ui:PasswordBox Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      Height="{StaticResource GA.Size.Control}" />
+
+      <ui:InfoBar IsOpen="{Binding HasError, Mode=OneWay}"
+                  Severity="Error"
+                  Title="No se pudo ingresar"
+                  Message="{Binding ErrorMessage}"
+                  IsClosable="False"
+                  Margin="{StaticResource GA.Gap.Top16}" />
+
+      <ui:Button Content="Ingresar"
+                 Appearance="Primary"
+                 Command="{Binding LoginCommand}"
+                 Height="{StaticResource GA.Size.ControlLarge}"
+                 HorizontalAlignment="Stretch"
+                 Margin="{StaticResource GA.Gap.Top20}" />
+
+      <ui:ProgressRing IsIndeterminate="True"
+                       Width="{StaticResource GA.Size.Progress}"
+                       Height="{StaticResource GA.Size.Progress}"
+                       Margin="{StaticResource GA.Gap.Top12}"
+                       Visibility="{Binding IsBusy, Converter={StaticResource GA.BoolToVisibility}}" />
+
+    </StackPanel>
+  </Grid>
+</ui:FluentWindow>
